@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv() # هذا السطر يقرأ ملف الأسرار المخفي
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -15,7 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # إعداد الذكاء الاصطناعي (تذكر وضع مفتاحك هنا)
-client = genai.Client(api_key="AIzaSyCy8DuNq5bzFZ_Gskp02-XEOPY75KZFjU8")
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # إعداد نظام تسجيل الدخول
 login_manager = LoginManager()
