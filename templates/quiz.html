@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>وضع الاختبار - منصتي التعليمية</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* تنسيقات خاصة بصفحة الاختبار فقط */
+        .quiz-container { max-width: 800px; margin: 40px auto; text-align: center; }
+        .progress-text { font-size: 20px; font-weight: bold; color: #64748b; margin-bottom: 20px; }
+        
+        /* بطاقة الاختبار الكبيرة */
+        .large-flip-card { height: 350px; width: 100%; max-width: 600px; margin: 0 auto 40px; perspective: 1000px; cursor: pointer; }
+        .large-flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        /* كلاس جديد يتم إضافته بواسطة الجافاسكربت لقلب البطاقة */
+        .large-flip-card.flipped .large-flip-card-inner { transform: rotateY(180deg); }
+        
+        .large-flip-card-front, .large-flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box; border-radius: 15px; font-size: 28px; font-weight: bold; line-height: 1.5; }
+        .large-flip-card-front { background-color: #2c3e50; color: white; }
+        .large-flip-card-back { background-color: #27ae60; color: white; transform: rotateY(180deg); }
+        
+        /* أزرار التحكم */
+        .controls { display: flex; justify-content: center; gap: 20px; align-items: center; }
+        .control-btn { padding: 15px 30px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer; background-color: #3498db; color: white; font-family: 'Cairo', sans-serif; font-weight: bold; transition: 0.3s; }
+        .control-btn:hover { background-color: #2980b9; }
+        .control-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        
+        /* زر العودة للرئيسية */
+        .back-home { display: inline-block; margin-top: 40px; color: #e74c3c; text-decoration: none; font-weight: bold; border: 2px solid #e74c3c; padding: 10px 20px; border-radius: 8px; }
+        .back-home:hover { background-color: #e74c3c; color: white; }
+    </style>
+</head>
+<body style="background-color: #f8fafc;">
+
+    <div class="container quiz-container">
+        <h1>وضع المراجعة 🧠</h1>
+        
+        <div class="progress-text" id="progressText">جاري التحميل...</div>
+
+        <div class="large-flip-card" id="flashcard" onclick="flipCard()">
+            <div class="large-flip-card-inner">
+                <div class="large-flip-card-front">
+                    <span class="category-badge" id="cardCategory" style="top: 20px; right: 20px;"></span>
+                    <span id="cardFront">السؤال يظهر هنا</span>
+                </div>
+                <div class="large-flip-card-back">
+                    <span id="cardBack">الإجابة تظهر هنا</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="prevBtn" onclick="prevCard()">السابق</button>
+            <button class="control-btn" id="nextBtn" onclick="nextCard()">التالي</button>
+        </div>
+
+        <a href="/" class="back-home">إنهاء الاختبار والعودة</a>
+    </div>
+
+    <script>
+        // استقبال البطاقات من بايثون وتحويلها لمصفوفة جافاسكربت
+        const cards = {{ cards | tojson }};
+        let currentIndex = 0;
+
+        // دالة لعرض البطاقة الحالية
+        function showCard(index) {
+            // تحديث النصوص
+            document.getElementById('cardCategory').innerText = cards[index].category;
+            document.getElementById('cardFront').innerText = cards[index].front;
+            document.getElementById('cardBack').innerText = cards[index].back;
+            
+            // تحديث مؤشر التقدم
+            document.getElementById('progressText').innerText = `بطاقة ${index + 1} من ${cards.length}`;
+            
+            // التأكد من أن البطاقة على الوجه الأمامي دائماً عند التبديل
+            document.getElementById('flashcard').classList.remove('flipped');
+            
+            // تفعيل وتعطيل الأزرار
+            document.getElementById('prevBtn').disabled = (index === 0);
+            document.getElementById('nextBtn').disabled = (index === cards.length - 1);
+        }
+
+        // دالة للانتقال للبطاقة التالية
+        function nextCard() {
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                showCard(currentIndex);
+            }
+        }
+
+        // دالة للانتقال للبطاقة السابقة
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showCard(currentIndex);
+            }
+        }
+
+        // دالة لقلب البطاقة عند النقر عليها
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        // عرض أول بطاقة عند تحميل الصفحة
+        showCard(currentIndex);
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إنشاء حساب - منصتي التعليمية</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; text-align: center;">
+        <h1>إنشاء حساب جديد 🚀</h1>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div style="color: #e74c3c; margin-bottom: 15px; font-weight: bold;">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/signup" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            <input class="note-input" type="text" name="username" placeholder="اختر اسم مستخدم" required autocomplete="off">
+            <input class="note-input" type="password" name="password" placeholder="اختر كلمة مرور قوية" required>
+            <button class="note-btn" type="submit" style="background-color: #27ae60;">إنشاء الحساب</button>
+        </form>
+        <p style="margin-top: 20px;">لديك حساب بالفعل؟ <a href="/login" style="color: #3498db; text-decoration: none; font-weight: bold;">سجل دخولك هنا</a></p>
+    </div>
+</body>
+</html>

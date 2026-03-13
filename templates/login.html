@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل الدخول - منصتي التعليمية</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; text-align: center;">
+        <h1>تسجيل الدخول 🔐</h1>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div style="color: #e74c3c; margin-bottom: 15px; font-weight: bold;">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            <input class="note-input" type="text" name="username" placeholder="اسم المستخدم" required autocomplete="off">
+            <input class="note-input" type="password" name="password" placeholder="كلمة المرور" required>
+            <button class="note-btn" type="submit">دخول</button>
+        </form>
+        <p style="margin-top: 20px;">ليس لديك حساب؟ <a href="/signup" style="color: #3498db; text-decoration: none; font-weight: bold;">أنشئ حساباً جديداً</a></p>
+    </div>
+</body>
+</html>

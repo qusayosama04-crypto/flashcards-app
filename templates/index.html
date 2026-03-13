@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة البطاقات التعليمية</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
+            <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك، <span style="color: #2c3e50;">{{ current_user.username }}</span> 👋</span>
+            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px; transition: 0.3s;" onmouseover="this.style.backgroundColor='#e74c3c'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#e74c3c';">تسجيل خروج</a>
+        </div>
+        <h1>منصتي التعليمية 🎓</h1>
+<div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+            <a href="/quiz" class="note-btn" style="background-color: #8e44ad; font-size: 20px; padding: 15px 40px; text-decoration: none; display: inline-block; border-radius: 50px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);">ابدأ الاختبار والمراجعة 🚀</a>
+        </div>        
+        <form action="/add" method="POST" style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #2c3e50;">إضافة يدوية ✍️</h3>
+            
+            <div style="display: flex; gap: 10px;">
+                <input class="note-input" type="text" name="category" placeholder="المادة..." autocomplete="off" style="flex: 1; padding: 12px;">
+                <input class="note-input" type="text" name="front" placeholder="السؤال أو المصطلح..." required autocomplete="off" style="flex: 2; padding: 12px;">
+            </div>
+            
+            <input class="note-input" type="text" name="back" placeholder="الإجابة أو الشرح..." required autocomplete="off" style="padding: 12px;">
+            <button class="note-btn" type="submit">إضافة بطاقة</button>
+        </form>
+
+        <form action="/upload_pdf" method="POST" enctype="multipart/form-data" style="background-color: #f0f9ff; padding: 25px; border-radius: 12px; border: 2px dashed #3498db; display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+            <h3 style="margin: 0; color: #2980b9;">تحويل PDF سحري ✨</h3>
+            
+            <input class="note-input" type="text" name="pdf_category" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px;">
+            
+            <input type="file" name="pdf_file" accept=".pdf" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #ffffff; font-family: 'Cairo', sans-serif;">
+            
+            <button class="note-btn" type="submit" style="background-color: #27ae60;">تحويل إلى بطاقات</button>
+        </form>
+
+        <div class="search-container">
+            <form action="/" method="GET">
+                <input type="text" name="search" class="note-input search-input" placeholder="ابحث عن مادة أو سؤال..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="note-btn search-btn">بحث 🔍</button>
+                {% if request.args.get('search') %}
+                    <a href="/" class="clear-search">إلغاء البحث</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="cards-grid">
+            {% for card in cards %}
+                <div class="card-wrapper">
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <span class="category-badge">{{ card.category }}</span>
+                                {{ card.front }}
+                            </div>
+                            <div class="flip-card-back">
+                                {{ card.back }}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/delete/{{ card.id }}" class="delete-btn">حذف 🗑️</a>
+                </div>
+            {% else %}
+                <p style="text-align: center; color: #888; grid-column: 1 / -1;">لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
