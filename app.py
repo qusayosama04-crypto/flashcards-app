@@ -41,8 +41,8 @@ def load_user(user_id):
 # 1. جدول المستخدمين
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    username = db.Column(db.String(500), unique=True, nullable=False)
+    password = db.Column(db.String(500), nullable=False)
     # علاقة: المستخدم يمتلك عدة بطاقات
     cards = db.relationship('Flashcard', backref='author', lazy=True)
 
