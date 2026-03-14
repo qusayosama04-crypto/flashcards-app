@@ -94,7 +94,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         # التأكد من المستخدم وكلمة المرور
         if user and check_password_hash(user.password, password):
-            login_user(user)
+            login_user(user, remember=True)
             return redirect(url_for('index'))
         else:
             flash('اسم المستخدم أو كلمة المرور غير صحيحة.')
