@@ -196,7 +196,6 @@ h1 {
 .clear-search:hover {
     text-decoration: underline;
 }
-/* 📱 Responsive Design for Mobile Screens */
 @media screen and (max-width: 768px) {
     body {
         padding: 10px;
@@ -207,24 +206,39 @@ h1 {
         margin: 10px auto;
         padding: 20px 15px;
         box-sizing: border-box;
+/* 📱 Responsive Design for Mobile Screens (V2) */
+@media screen and (max-width: 768px) {
+    /* منع الشاشة من التحرك يميناً ويساراً تماماً */
+    body, html {
+        overflow-x: hidden;
+        padding: 5px;
+    }
+    
+    .container {
+        width: 100% !important;
+        margin: 0 auto;
+        padding: 15px;
+        box-sizing: border-box;
     }
 
-    /* Make text boxes and buttons take full width so they are easy to tap */
-    .note-input, input[type="text"], input[type="password"] {
+    /* جعل كل المربعات والأزرار تأخذ العرض بالكامل */
+    .note-input, input[type="text"], input[type="password"], input[type="file"], select {
         width: 100% !important;
         box-sizing: border-box;
         margin-bottom: 10px;
     }
 
-    /* Stack flexbox items vertically on phones instead of side-by-side */
+    /* تحويل أي عناصر بجانب بعضها لتصبح فوق بعضها (مثل البحث) */
     div[style*="display: flex"] {
-        flex-direction: column;
+        flex-direction: column !important;
         align-items: stretch !important;
-        gap: 15px;
+        gap: 10px !important;
     }
 
+    /* أزرار عريضة ومريحة للإصبع */
     .note-btn, button {
-        width: 100%;
+        width: 100% !important;
         margin-top: 5px;
+        box-sizing: border-box;
     }
 }
