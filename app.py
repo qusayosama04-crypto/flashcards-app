@@ -14,7 +14,14 @@ app = Flask(__name__)
 
 # إعدادات الحماية وقاعدة البيانات
 app.config['SECRET_KEY'] = 'my_super_secret_key_for_brand' # مفتاح سري لحماية جلسات المستخدمين
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flashcards.db'
+# جلب رابط قاعدة البيانات السحابية، وإذا لم يوجد نستخدم الملف المحلي
+db_url = os.environ.get("DATABASE_URL")
+
+# إصلاح مشكلة شائعة في بعض الروابط
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///flashcards.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
