@@ -1,0 +1,16 @@
+{
+  "name": "Zaki Cards - منصتي التعليمية",
+  "short_name": "Zaki Cards",
+  "description": "تطبيق البطاقات التعليمية الذكية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8a2be2",
+  "icons": [
+    {
+      "src": "/static/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
