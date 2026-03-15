@@ -11,9 +11,17 @@
 <body>
     <div class="container">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
-            <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك، <span style="color: #2c3e50;">{{ current_user.username }}</span> 👋</span>
-            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px; transition: 0.3s;" onmouseover="this.style.backgroundColor='#e74c3c'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#e74c3c';">تسجيل خروج</a>
+    {% if current_user.is_authenticated %}
+        <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك، <span style="color: #2c3e50;">{{ current_user.username }}</span></span>
+        <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px;">تسجيل خروج</a>
+    {% else %}
+        <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك يا ضيف! 👋</span>
+        <div>
+            <a href="/login" style="color: #8a2be2; text-decoration: none; font-weight: bold; margin-right: 15px;">تسجيل الدخول</a>
+            <a href="/signup" style="background-color: #8a2be2; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold;">إنشاء حساب</a>
         </div>
+    {% endif %}
+</div>
         <h1>منصتي التعليمية 🎓</h1>
 <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
             <a href="/quiz" class="note-btn" style="background-color: #8e44ad; font-size: 20px; padding: 15px 40px; text-decoration: none; display: inline-block; border-radius: 50px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);">ابدأ الاختبار والمراجعة 🚀</a>

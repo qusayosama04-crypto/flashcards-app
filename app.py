@@ -110,20 +110,22 @@ def logout():
 # --- مسارات البطاقات التعليمية ---
 
 @app.route('/')
-@login_required # هذا السطر يمنع الدخول للصفحة إلا للمسجلين
 def index():
+    # 1. إذا كان المستخدم ضيفاً (غير مسجل الدخول)، اعرض له واجهة فارغة ليجربها
+    if not current_user.is_authenticated:
+        return render_template('index.html', cards=[])
+        
+    # 2. إذا كان المستخدم مسجل الدخول، نفذ كودك الأصلي للبحث وعرض البطاقات
     search_query = request.args.get('search')
     if search_query:
-        # البحث في بطاقات المستخدم الحالي فقط
         all_cards = Flashcard.query.filter(
             Flashcard.user_id == current_user.id,
             ((Flashcard.front.contains(search_query)) | (Flashcard.category.contains(search_query)))
         ).all()
     else:
-        # عرض بطاقات المستخدم الحالي فقط
         all_cards = Flashcard.query.filter_by(user_id=current_user.id).all()
+        
     return render_template('index.html', cards=all_cards)
-
 @app.route('/add', methods=['POST'])
 @login_required
 def add_card():
