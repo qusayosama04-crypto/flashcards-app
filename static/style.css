@@ -196,3 +196,35 @@ h1 {
 .clear-search:hover {
     text-decoration: underline;
 }
+/* 📱 Responsive Design for Mobile Screens */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        width: 95% !important; /* Make the white box take up most of the screen */
+        margin: 10px auto;
+        padding: 20px 15px;
+        box-sizing: border-box;
+    }
+
+    /* Make text boxes and buttons take full width so they are easy to tap */
+    .note-input, input[type="text"], input[type="password"] {
+        width: 100% !important;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    /* Stack flexbox items vertically on phones instead of side-by-side */
+    div[style*="display: flex"] {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 15px;
+    }
+
+    .note-btn, button {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
