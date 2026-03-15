@@ -3,57 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة البطاقات التعليمية</title>
+    <title>منصة البطاقات التعليمية | Zaki Cards</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-<meta name="theme-color" content="#8a2be2">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#8a2be2">
 </head>
 <body>
     <div class="container">
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
-    {% if current_user.is_authenticated %}
-        <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك، <span style="color: #2c3e50;">{{ current_user.username }}</span></span>
-        <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px;">تسجيل خروج</a>
-    {% else %}
-        <span style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك يا ضيف! 👋</span>
-        <div>
-            <a href="/login" style="color: #8a2be2; text-decoration: none; font-weight: bold; margin-right: 15px;">تسجيل الدخول</a>
-            <a href="/signup" style="background-color: #8a2be2; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold;">إنشاء حساب</a>
-        </div>
-    {% endif %}
-</div>
-        <h1>منصتي التعليمية 🎓</h1>
-<div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
-            <a href="/quiz" class="note-btn" style="background-color: #8e44ad; font-size: 20px; padding: 15px 40px; text-decoration: none; display: inline-block; border-radius: 50px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);">ابدأ الاختبار والمراجعة 🚀</a>
-        </div>        
-        <form action="/add" method="POST" style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
-            <h3 style="margin: 0; color: #2c3e50;">إضافة يدوية ✍️</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
             
-            <div style="display: flex; gap: 10px;">
-                <input class="note-input" type="text" name="category" placeholder="المادة..." autocomplete="off" style="flex: 1; padding: 12px;">
-                <input class="note-input" type="text" name="front" placeholder="السؤال أو المصطلح..." required autocomplete="off" style="flex: 2; padding: 12px;">
+            <div id="auth-section">
+                {% if current_user.is_authenticated %}
+                    <span style="font-size: 18px; font-weight: bold; color: #64748b;">
+                        <span data-tr="welcome_user">مرحباً بك،</span> 
+                        <span style="color: #2c3e50;">{{ current_user.username }}</span>
+                    </span>
+                    <a href="/logout" data-tr="logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px; margin-right: 15px;">تسجيل خروج</a>
+                {% else %}
+                    <span data-tr="welcome_guest" style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك يا ضيف! 👋</span>
+                    <div style="display: inline-block; margin-right: 15px;">
+                        <a href="/login" data-tr="login" style="color: #8a2be2; text-decoration: none; font-weight: bold; margin-right: 15px;">تسجيل الدخول</a>
+                        <a href="/signup" data-tr="signup" style="background-color: #8a2be2; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold;">إنشاء حساب</a>
+                    </div>
+                {% endif %}
             </div>
-            
-            <input class="note-input" type="text" name="back" placeholder="الإجابة أو الشرح..." required autocomplete="off" style="padding: 12px;">
-            <button class="note-btn" type="submit">إضافة بطاقة</button>
+
+            <button id="lang-toggle" onclick="toggleLanguage()" style="background-color: #f1f5f9; color: #2c3e50; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">English 🇺🇸</button>
+        </div>
+
+        <h1 data-tr="main_title">منصتي التعليمية 🎓</h1>
+        
+        <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+            <a href="/quiz" data-tr="start_quiz" class="note-btn" style="background-color: #8e44ad; font-size: 20px; padding: 15px 40px; text-decoration: none; display: inline-block; border-radius: 8px;">ابدأ الاختبار والمراجعة 🚀</a>
+        </div>
+
+        <form action="/add" method="POST" style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h3 data-tr="add_manual" style="margin: 0 0 15px 0; color: #2c3e50;">إضافة يدوية ✍️</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input class="note-input" type="text" name="category" data-tr-ph="subject_ph" placeholder="المادة..." autocomplete="off" style="flex: 1; padding: 12px;">
+                <input class="note-input" type="text" name="front" data-tr-ph="question_ph" placeholder="السؤال أو المصطلح..." required autocomplete="off" style="flex: 2; padding: 12px;">
+            </div>
+            <input class="note-input" type="text" name="back" data-tr-ph="answer_ph" placeholder="الإجابة أو الشرح..." required autocomplete="off" style="padding: 12px; margin-bottom: 15px;">
+            <button class="note-btn" data-tr="add_btn" type="submit">إضافة بطاقة</button>
         </form>
 
-        <form action="/upload_pdf" method="POST" enctype="multipart/form-data" style="background-color: #f0f9ff; padding: 25px; border-radius: 12px; border: 2px dashed #3498db; display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
-            <h3 style="margin: 0; color: #2980b9;">تحويل PDF سحري ✨</h3>
-            
-            <input class="note-input" type="text" name="pdf_category" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px;">
-            
-            <input type="file" name="pdf_file" accept=".pdf" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #ffffff; font-family: 'Cairo', sans-serif;">
-            
-            <button class="note-btn" type="submit" style="background-color: #27ae60;">تحويل إلى بطاقات</button>
+        <form action="/upload_pdf" method="POST" enctype="multipart/form-data" style="background-color: #f0f9ff; padding: 25px; border-radius: 12px; border: 2px dashed #3498db; margin-bottom: 20px;">
+            <h3 data-tr="magic_pdf" style="margin: 0 0 15px 0; color: #2980b9;">تحويل PDF سحري ✨</h3>
+            <input class="note-input" type="text" name="pdf_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px; margin-bottom: 10px;">
+            <input type="file" name="pdf_file" accept=".pdf" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #ffffff; font-size: 16px; margin-bottom: 15px; width: 100%;">
+            <button class="note-btn" data-tr="convert_btn" type="submit" style="background-color: #27ae60;">تحويل إلى بطاقات</button>
         </form>
 
         <div class="search-container">
-            <form action="/" method="GET">
-                <input type="text" name="search" class="note-input search-input" placeholder="ابحث عن مادة أو سؤال..." value="{{ request.args.get('search', '') }}">
-                <button type="submit" class="note-btn search-btn">بحث 🔍</button>
+            <form action="/" method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" name="search" data-tr-ph="search_ph" class="note-input search-input" placeholder="ابحث عن مادة أو سؤال..." value="{{ request.args.get('search', '') }}" style="flex: 1;">
+                <button type="submit" data-tr="search_btn" class="note-btn search-btn">بحث 🔍</button>
                 {% if request.args.get('search') %}
-                    <a href="/" class="clear-search">إلغاء البحث</a>
+                    <a href="/" data-tr="clear_search" class="clear-search" style="padding: 10px; background: #e74c3c; color: white; text-decoration: none; border-radius: 8px;">إلغاء البحث</a>
                 {% endif %}
             </form>
         </div>
@@ -72,12 +78,107 @@
                             </div>
                         </div>
                     </div>
-                    <a href="/delete/{{ card.id }}" class="delete-btn">حذف 🗑️</a>
+                    <a href="/delete/{{ card.id }}" data-tr="delete_btn" class="delete-btn">حذف 🗑️</a>
                 </div>
             {% else %}
-                <p style="text-align: center; color: #888; grid-column: 1 / -1;">لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!</p>
+                <p data-tr="no_cards" style="text-align: center; color: #888; grid-column: 1 / -1;">لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!</p>
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        // قاموس الترجمة
+        const translations = {
+            ar: {
+                welcome_user: "مرحباً بك،",
+                logout: "تسجيل خروج",
+                welcome_guest: "مرحباً بك يا ضيف! 👋",
+                login: "تسجيل الدخول",
+                signup: "إنشاء حساب",
+                main_title: "منصتي التعليمية 🎓",
+                start_quiz: "ابدأ الاختبار والمراجعة 🚀",
+                add_manual: "إضافة يدوية ✍️",
+                subject_ph: "المادة...",
+                question_ph: "السؤال أو المصطلح...",
+                answer_ph: "الإجابة أو الشرح...",
+                add_btn: "إضافة بطاقة",
+                magic_pdf: "تحويل PDF سحري ✨",
+                pdf_subject_ph: "اسم المادة (اختياري)...",
+                convert_btn: "تحويل إلى بطاقات",
+                search_ph: "ابحث عن مادة أو سؤال...",
+                search_btn: "بحث 🔍",
+                clear_search: "إلغاء البحث",
+                delete_btn: "حذف 🗑️",
+                no_cards: "لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!",
+                lang_toggle: "English 🇺🇸"
+            },
+            en: {
+                welcome_user: "Welcome, ",
+                logout: "Logout",
+                welcome_guest: "Welcome, Guest! 👋",
+                login: "Login",
+                signup: "Sign Up",
+                main_title: "My Learning Platform 🎓",
+                start_quiz: "Start Quiz & Review 🚀",
+                add_manual: "Manual Add ✍️",
+                subject_ph: "Subject/Category...",
+                question_ph: "Question or Term...",
+                answer_ph: "Answer or Explanation...",
+                add_btn: "Add Card",
+                magic_pdf: "Magic PDF Conversion ✨",
+                pdf_subject_ph: "Subject Name (Optional)...",
+                convert_btn: "Convert to Cards",
+                search_ph: "Search for a subject or question...",
+                search_btn: "Search 🔍",
+                clear_search: "Clear Search",
+                delete_btn: "Delete 🗑️",
+                no_cards: "No cards yet. Start by adding your first card!",
+                lang_toggle: "عربي 🇸🇦"
+            }
+        };
+
+        // الدالة المسؤولة عن تغيير اللغة
+        function setLanguage(lang) {
+            // تغيير خصائص الصفحة
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            
+            // تغيير النصوص (Texts)
+            document.querySelectorAll('[data-tr]').forEach(el => {
+                const key = el.getAttribute('data-tr');
+                if (translations[lang][key]) {
+                    // الحفاظ على الأيقونات (Emojis) إذا لزم الأمر، لكن القاموس يحتوي عليها
+                    el.innerText = translations[lang][key]; 
+                }
+            });
+
+            // تغيير النصوص الإرشادية في المربعات (Placeholders)
+            document.querySelectorAll('[data-tr-ph]').forEach(el => {
+                const key = el.getAttribute('data-tr-ph');
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            // تغيير زر اللغة نفسه
+            document.getElementById('lang-toggle').innerText = translations[lang].lang_toggle;
+
+            // حفظ اختيار المستخدم
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        // عند الضغط على زر تغيير اللغة
+        function toggleLanguage() {
+            const currentLang = document.documentElement.lang;
+            const newLang = (currentLang === 'ar') ? 'en' : 'ar';
+            setLanguage(newLang);
+        }
+
+        // عند تحميل الصفحة، نتحقق من اختيار المستخدم السابق
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'ar'; // العربية هي الافتراضية
+            setLanguage(savedLang);
+        });
+    </script>
 </body>
 </html>
