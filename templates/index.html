@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-2M3NVXMVDW"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -59,7 +58,25 @@
         <form action="/upload_pdf" method="POST" enctype="multipart/form-data" style="background-color: #f0f9ff; padding: 25px; border-radius: 12px; border: 2px dashed #3498db; margin-bottom: 20px;">
             <h3 data-tr="magic_pdf" style="margin: 0 0 15px 0; color: #2980b9;">تحويل PDF سحري ✨</h3>
             <input class="note-input" type="text" name="pdf_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px; margin-bottom: 10px;">
-            <input type="file" name="pdf_file" accept=".pdf" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #ffffff; font-size: 16px; margin-bottom: 15px; width: 100%;">
+            <input type="file" name="pdf_file" accept=".pdf" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #ffffff; font-size: 16px; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label data-tr="card_lang_label" style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: bold; font-size: 14px;">لغة الملاحظات:</label>
+                    <select name="language" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                        <option value="ar" data-tr="lang_ar">عربي (Arabic)</option>
+                        <option value="en" data-tr="lang_en">إنجليزي (English)</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label data-tr="note_type_label" style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: bold; font-size: 14px;">نوع الملاحظات:</label>
+                    <select name="output_type" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
+                        <option value="flashcards" data-tr="type_flashcards">بطاقات حفظ قصيرة</option>
+                        <option value="essay" data-tr="type_essay">أسئلة مقالية طويلة</option>
+                    </select>
+                </div>
+            </div>
+
             <button class="note-btn" data-tr="convert_btn" type="submit" style="background-color: #27ae60;">تحويل إلى بطاقات</button>
         </form>
 
@@ -83,7 +100,11 @@
                                 {{ card.front }}
                             </div>
                             <div class="flip-card-back">
-                                {{ card.back }}
+                                <div class="original-text" style="width: 100%;">{{ card.back }}</div>
+                                
+                                <div id="simp-{{ card.id }}" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #f39c12; font-size: 0.95em; color: #f1f2f6; text-align: right; width: 100%;"></div>
+                                
+                                <button onclick="simplifyCard(this, {{ card.id }})" class="note-btn" data-tr="simplify_btn" style="background-color: #f39c12; font-size: 14px; padding: 8px 12px; margin-top: 15px; width: 100%; box-sizing: border-box;">بسطها لي 💡</button>
                             </div>
                         </div>
                     </div>
@@ -96,96 +117,88 @@
     </div>
 
     <script>
-        // قاموس الترجمة
         const translations = {
             ar: {
-                welcome_user: "مرحباً بك،",
-                logout: "تسجيل خروج",
-                welcome_guest: "مرحباً بك يا ضيف! 👋",
-                login: "تسجيل الدخول",
-                signup: "إنشاء حساب",
-                main_title: "منصتي التعليمية 🎓",
-                start_quiz: "ابدأ الاختبار والمراجعة 🚀",
-                add_manual: "إضافة يدوية ✍️",
-                subject_ph: "المادة...",
-                question_ph: "السؤال أو المصطلح...",
-                answer_ph: "الإجابة أو الشرح...",
-                add_btn: "إضافة بطاقة",
-                magic_pdf: "تحويل PDF سحري ✨",
-                pdf_subject_ph: "اسم المادة (اختياري)...",
-                convert_btn: "تحويل إلى بطاقات",
-                search_ph: "ابحث عن مادة أو سؤال...",
-                search_btn: "بحث 🔍",
-                clear_search: "إلغاء البحث",
-                delete_btn: "حذف 🗑️",
-                no_cards: "لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!",
-                lang_toggle: "English 🇺🇸"
+                welcome_user: "مرحباً بك،", logout: "تسجيل خروج", welcome_guest: "مرحباً بك يا ضيف! 👋",
+                login: "تسجيل الدخول", signup: "إنشاء حساب", main_title: "منصتي التعليمية 🎓",
+                start_quiz: "ابدأ الاختبار والمراجعة 🚀", add_manual: "إضافة يدوية ✍️",
+                subject_ph: "المادة...", question_ph: "السؤال أو المصطلح...", answer_ph: "الإجابة أو الشرح...",
+                add_btn: "إضافة بطاقة", magic_pdf: "تحويل PDF سحري ✨", pdf_subject_ph: "اسم المادة (اختياري)...",
+                convert_btn: "تحويل إلى بطاقات", search_ph: "ابحث عن مادة أو سؤال...", search_btn: "بحث 🔍",
+                clear_search: "إلغاء البحث", delete_btn: "حذف 🗑️", no_cards: "لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!",
+                lang_toggle: "English 🇺🇸", card_lang_label: "لغة الملاحظات:", note_type_label: "نوع الملاحظات:",
+                lang_ar: "عربي (Arabic)", lang_en: "إنجليزي (English)", type_flashcards: "بطاقات حفظ قصيرة",
+                type_essay: "أسئلة مقالية طويلة", simplify_btn: "بسطها لي 💡"
             },
             en: {
-                welcome_user: "Welcome, ",
-                logout: "Logout",
-                welcome_guest: "Welcome, Guest! 👋",
-                login: "Login",
-                signup: "Sign Up",
-                main_title: "My Learning Platform 🎓",
-                start_quiz: "Start Quiz & Review 🚀",
-                add_manual: "Manual Add ✍️",
-                subject_ph: "Subject/Category...",
-                question_ph: "Question or Term...",
-                answer_ph: "Answer or Explanation...",
-                add_btn: "Add Card",
-                magic_pdf: "Magic PDF Conversion ✨",
-                pdf_subject_ph: "Subject Name (Optional)...",
-                convert_btn: "Convert to Cards",
-                search_ph: "Search for a subject or question...",
-                search_btn: "Search 🔍",
-                clear_search: "Clear Search",
-                delete_btn: "Delete 🗑️",
-                no_cards: "No cards yet. Start by adding your first card!",
-                lang_toggle: "عربي 🇸🇦"
+                welcome_user: "Welcome, ", logout: "Logout", welcome_guest: "Welcome, Guest! 👋",
+                login: "Login", signup: "Sign Up", main_title: "My Learning Platform 🎓",
+                start_quiz: "Start Quiz & Review 🚀", add_manual: "Manual Add ✍️",
+                subject_ph: "Subject/Category...", question_ph: "Question or Term...", answer_ph: "Answer or Explanation...",
+                add_btn: "Add Card", magic_pdf: "Magic PDF Conversion ✨", pdf_subject_ph: "Subject Name (Optional)...",
+                convert_btn: "Convert to Cards", search_ph: "Search for a subject or question...", search_btn: "Search 🔍",
+                clear_search: "Clear Search", delete_btn: "Delete 🗑️", no_cards: "No cards yet. Start by adding your first card!",
+                lang_toggle: "عربي 🇸🇦", card_lang_label: "Notes Language:", note_type_label: "Notes Type:",
+                lang_ar: "Arabic (عربي)", lang_en: "English (إنجليزي)", type_flashcards: "Short Q&A Flashcards",
+                type_essay: "Long Essay Questions", simplify_btn: "Simplify it 💡"
             }
         };
 
-        // الدالة المسؤولة عن تغيير اللغة
         function setLanguage(lang) {
-            // تغيير خصائص الصفحة
             document.documentElement.lang = lang;
             document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
             
-            // تغيير النصوص (Texts)
             document.querySelectorAll('[data-tr]').forEach(el => {
                 const key = el.getAttribute('data-tr');
-                if (translations[lang][key]) {
-                    // الحفاظ على الأيقونات (Emojis) إذا لزم الأمر، لكن القاموس يحتوي عليها
-                    el.innerText = translations[lang][key]; 
-                }
+                if (translations[lang][key]) { el.innerText = translations[lang][key]; }
             });
 
-            // تغيير النصوص الإرشادية في المربعات (Placeholders)
             document.querySelectorAll('[data-tr-ph]').forEach(el => {
                 const key = el.getAttribute('data-tr-ph');
-                if (translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
+                if (translations[lang][key]) { el.placeholder = translations[lang][key]; }
             });
 
-            // تغيير زر اللغة نفسه
             document.getElementById('lang-toggle').innerText = translations[lang].lang_toggle;
-
-            // حفظ اختيار المستخدم
             localStorage.setItem('preferredLanguage', lang);
         }
 
-        // عند الضغط على زر تغيير اللغة
         function toggleLanguage() {
             const currentLang = document.documentElement.lang;
             const newLang = (currentLang === 'ar') ? 'en' : 'ar';
             setLanguage(newLang);
         }
 
-        // عند تحميل الصفحة، نتحقق من اختيار المستخدم السابق
+        // كود سحر التبسيط الجديد 💡
+        function simplifyCard(buttonElement, cardId) {
+            const cardBack = buttonElement.closest('.flip-card-back');
+            const textToSimplify = cardBack.querySelector('.original-text').innerText;
+            const resultDiv = document.getElementById('simp-' + cardId);
+            const currentLang = document.documentElement.lang;
+
+            buttonElement.innerText = (currentLang === 'ar') ? "جاري التبسيط... ⏳" : "Simplifying... ⏳";
+            buttonElement.disabled = true;
+
+            fetch('/api/simplify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToSimplify, lang: currentLang })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.error) { throw new Error(data.error); }
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = "<strong>" + ((currentLang === 'ar') ? "تبسيط العبقري 🧠:" : "Genius Simplicity 🧠:") + "</strong><br><br>" + data.simplified_text.replace(/\n/g, '<br>');
+                buttonElement.style.display = 'none'; // إخفاء الزر بعد النجاح
+            })
+            .catch(error => {
+                alert("حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.");
+                buttonElement.innerText = (currentLang === 'ar') ? "بسطها لي 💡" : "Simplify it 💡";
+                buttonElement.disabled = false;
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('preferredLanguage') || 'ar'; // العربية هي الافتراضية
+            const savedLang = localStorage.getItem('preferredLanguage') || 'ar'; 
             setLanguage(savedLang);
         });
     </script>
