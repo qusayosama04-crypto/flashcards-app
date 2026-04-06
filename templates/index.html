@@ -15,6 +15,85 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#8a2be2">
+    <style>
+        /* --- سحر شخصية "زكي" المتحركة 🤖 --- */
+        .mascot-container {
+            position: fixed;
+            bottom: 30px;
+            right: -350px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 9999;
+            animation: slideInOut 7s ease-in-out forwards;
+            animation-delay: 1.5s;
+        }
+
+        .mascot-emoji {
+            font-size: 60px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            animation: bounce 1.5s infinite;
+        }
+
+        .speech-bubble {
+            background: #ffffff;
+            border: 3px solid #8a2be2;
+            border-radius: 20px;
+            padding: 12px 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: relative;
+            font-size: 16px;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 12px 0 12px 12px;
+            border-style: solid;
+            border-color: transparent transparent transparent #8a2be2;
+            display: block;
+            width: 0;
+        }
+
+        @keyframes slideInOut {
+            0% { right: -350px; }
+            15% { right: 20px; }
+            85% { right: 20px; }
+            100% { right: -350px; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @media screen and (max-width: 600px) {
+            .mascot-emoji { font-size: 45px; }
+            .speech-bubble { font-size: 14px; max-width: 150px; padding: 8px 12px; }
+        }
+        
+        /* تنسيق قائمة اختيار عدد الأسئلة */
+        .quiz-select {
+            padding: 15px 10px;
+            border-radius: 8px;
+            border: 2px solid #ff9800;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff9800;
+            background-color: #fffaf0;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Cairo', sans-serif;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -41,8 +120,17 @@
 
         <h1 data-tr="main_title">منصتي التعليمية 🎓</h1>
         
-        <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
-            <a href="/quiz" data-tr="start_quiz" class="note-btn" style="background-color: #8e44ad; font-size: 20px; padding: 15px 40px; text-decoration: none; display: inline-block; border-radius: 8px;">ابدأ الاختبار والمراجعة 🚀</a>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: stretch; margin-bottom: 40px; margin-top: 20px; flex-wrap: wrap;">
+            <a href="/quiz" data-tr="start_quiz" class="note-btn" style="background-color: #8e44ad; font-size: 18px; padding: 15px 30px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(142,68,173,0.3); display: flex; align-items: center;">ابدأ المراجعة الكلاسيكية 🚀</a>
+            
+            <form action="/ai_quiz_generate" method="GET" style="display: flex; gap: 5px; margin: 0; align-items: stretch;">
+                <select name="num_q" class="quiz-select">
+                    <option value="5">5 أسئلة</option>
+                    <option value="10">10 أسئلة</option>
+                    <option value="15">15 سؤال</option>
+                </select>
+                <button type="submit" data-tr="ai_quiz" class="note-btn" style="background-color: #ff9800; font-size: 18px; padding: 15px 30px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(255,152,0,0.3); border: none; cursor: pointer;">تحدي الذكاء الاصطناعي 🤖⚔️</button>
+            </form>
         </div>
 
         <form action="/add" method="POST" style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
@@ -116,12 +204,19 @@
         </div>
     </div>
 
+    <div class="mascot-container">
+        <div class="speech-bubble" id="mascot-text">
+            جاري تحميل زكي... 🤖
+        </div>
+        <div class="mascot-emoji">🤖</div>
+    </div>
+
     <script>
         const translations = {
             ar: {
                 welcome_user: "مرحباً بك،", logout: "تسجيل خروج", welcome_guest: "مرحباً بك يا ضيف! 👋",
                 login: "تسجيل الدخول", signup: "إنشاء حساب", main_title: "منصتي التعليمية 🎓",
-                start_quiz: "ابدأ الاختبار والمراجعة 🚀", add_manual: "إضافة يدوية ✍️",
+                start_quiz: "ابدأ المراجعة الكلاسيكية 🚀", ai_quiz: "تحدي الذكاء الاصطناعي 🤖⚔️", add_manual: "إضافة يدوية ✍️",
                 subject_ph: "المادة...", question_ph: "السؤال أو المصطلح...", answer_ph: "الإجابة أو الشرح...",
                 add_btn: "إضافة بطاقة", magic_pdf: "تحويل PDF سحري ✨", pdf_subject_ph: "اسم المادة (اختياري)...",
                 convert_btn: "تحويل إلى بطاقات", search_ph: "ابحث عن مادة أو سؤال...", search_btn: "بحث 🔍",
@@ -133,7 +228,7 @@
             en: {
                 welcome_user: "Welcome, ", logout: "Logout", welcome_guest: "Welcome, Guest! 👋",
                 login: "Login", signup: "Sign Up", main_title: "My Learning Platform 🎓",
-                start_quiz: "Start Quiz & Review 🚀", add_manual: "Manual Add ✍️",
+                start_quiz: "Classic Review 🚀", ai_quiz: "AI Quiz Challenge 🤖⚔️", add_manual: "Manual Add ✍️",
                 subject_ph: "Subject/Category...", question_ph: "Question or Term...", answer_ph: "Answer or Explanation...",
                 add_btn: "Add Card", magic_pdf: "Magic PDF Conversion ✨", pdf_subject_ph: "Subject Name (Optional)...",
                 convert_btn: "Convert to Cards", search_ph: "Search for a subject or question...", search_btn: "Search 🔍",
@@ -143,6 +238,21 @@
                 type_essay: "Long Essay Questions", simplify_btn: "Simplify it 💡"
             }
         };
+
+        const zakiQuotesAr = [
+            "أنا زكي! 🤓 أراقبك.. ذاكر بتركيز يا بطل!",
+            "الفاينال يقترب.. لا تستسلم يا صديقي! ⚔️",
+            "عقلك يستوعب أكثر مما تتخيل.. استمر! 🧠",
+            "هل جربت ميزة 'بسطها لي'؟ ستعجبك! 💡",
+            "من طلب العلا سهر الليالي! ☕"
+        ];
+        const zakiQuotesEn = [
+            "I'm Zaki! 🤓 Watching you.. Study hard!",
+            "Finals are near.. Don't give up! ⚔️",
+            "Your brain is amazing.. Keep going! 🧠",
+            "Tried the 'Simplify it' button? It's magic! 💡",
+            "Hard work pays off! Grab a coffee ☕"
+        ];
 
         function setLanguage(lang) {
             document.documentElement.lang = lang;
@@ -160,6 +270,10 @@
 
             document.getElementById('lang-toggle').innerText = translations[lang].lang_toggle;
             localStorage.setItem('preferredLanguage', lang);
+
+            const mascotText = document.getElementById('mascot-text');
+            const quotesArray = lang === 'ar' ? zakiQuotesAr : zakiQuotesEn;
+            mascotText.innerText = quotesArray[Math.floor(Math.random() * quotesArray.length)];
         }
 
         function toggleLanguage() {
@@ -168,7 +282,6 @@
             setLanguage(newLang);
         }
 
-        // كود سحر التبسيط الجديد 💡
         function simplifyCard(buttonElement, cardId) {
             const cardBack = buttonElement.closest('.flip-card-back');
             const textToSimplify = cardBack.querySelector('.original-text').innerText;
@@ -188,7 +301,7 @@
                 if(data.error) { throw new Error(data.error); }
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = "<strong>" + ((currentLang === 'ar') ? "تبسيط العبقري 🧠:" : "Genius Simplicity 🧠:") + "</strong><br><br>" + data.simplified_text.replace(/\n/g, '<br>');
-                buttonElement.style.display = 'none'; // إخفاء الزر بعد النجاح
+                buttonElement.style.display = 'none'; 
             })
             .catch(error => {
                 alert("حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.");

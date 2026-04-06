@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الذكاء الاصطناعي 🤖</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="theme-color" content="#ff9800">
+    <style>
+        .option-btn {
+            background-color: #f1f5f9;
+            color: #2c3e50;
+            border: 2px solid #cbd5e1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+            text-align: right;
+            width: 100%;
+        }
+        .option-btn:hover {
+            background-color: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        .correct { background-color: #27ae60 !important; color: white !important; border-color: #27ae60 !important; }
+        .wrong { background-color: #e74c3c !important; color: white !important; border-color: #e74c3c !important; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <h1 style="color: #ff9800; text-align: center;">تحدي الذكاء الاصطناعي 🤖⚔️</h1>
+        
+        <div id="quiz-box" style="background: #ffffff; padding: 30px; border-radius: 15px; border: 2px dashed #ff9800;">
+            <div style="color: #64748b; font-weight: bold; margin-bottom: 15px;" id="q-counter">سؤال 1 من 5</div>
+            <h3 id="question-text" style="color: #2c3e50; line-height: 1.5; margin-bottom: 20px;">جاري توليد التحدي من بطاقاتك... ⏳</h3>
+            <div id="options-container"></div>
+        </div>
+
+        <div id="result-box" style="display:none; text-align: center; margin-top:20px;">
+            <h1 id="score-text" style="color: #27ae60; font-size: 40px;"></h1>
+            <p style="font-size: 18px; color: #64748b;">هل أنت مستعد لجولة أخرى؟</p>
+            <div style="margin-top: 20px;">
+                <a href="/ai_quiz_generate" class="note-btn" style="background-color: #ff9800; text-decoration: none;">تحدي جديد 🔄</a>
+                <a href="/" class="note-btn" style="background-color: #64748b; text-decoration: none;">العودة للرئيسية 🏠</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {{ quiz | tojson }};
+        let currentQ = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            if (currentQ >= quizData.length) {
+                showResults();
+                return;
+            }
+            
+            const q = quizData[currentQ];
+            document.getElementById('q-counter').innerText = `سؤال ${currentQ + 1} من ${quizData.length}`;
+            document.getElementById('question-text').innerText = q.question;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, idx) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            const correctIdx = quizData[currentQ].correct_index;
+            
+            if (idx === correctIdx) {
+                btn.classList.add('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                allBtns[correctIdx].classList.add('correct'); 
+            }
+
+            setTimeout(() => {
+                currentQ++;
+                loadQuestion();
+            }, 1500);
+        }
+
+        function showResults() {
+            document.getElementById('quiz-box').style.display = 'none';
+            document.getElementById('result-box').style.display = 'block';
+            document.getElementById('score-text').innerText = `نتيجتك: ${score} من ${quizData.length} 🎯`;
+        }
+
+        if(quizData && quizData.length > 0) {
+            loadQuestion();
+        } else {
+            document.getElementById('question-text').innerText = "عذراً، لم نتمكن من توليد أسئلة. حاول إضافة بطاقات أطول.";
+        }
+    </script>
+</body>
+</html>

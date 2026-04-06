@@ -1,4 +1,5 @@
 import os
+import random
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -124,7 +125,6 @@ def delete_card(id):
         db.session.commit()
     return redirect('/')
 
-# --- مسار الـ PDF (مع دعم اللغة والأسئلة المقالية) ---
 @app.route('/upload_pdf', methods=['POST'])
 @login_required
 def upload_pdf():
@@ -170,11 +170,9 @@ def upload_pdf():
                 db.session.add(new_card)
             db.session.commit()
         except Exception as e:
-            print(f"\n--- حدث خطأ --- \n{e}\n----------------\n")
             flash("حدث خطأ أثناء معالجة الملف.")
     return redirect('/')
 
-# --- الميزة الخرافية الجديدة: التبسيط السحري ---
 @app.route('/api/simplify', methods=['POST'])
 @login_required
 def simplify_answer():
@@ -198,6 +196,37 @@ def simplify_answer():
         return jsonify({'simplified_text': response.text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# --- الميزة الجديدة والمحسنة: تحدي الذكاء الاصطناعي مع اختيار العدد ---
+@app.route('/ai_quiz_generate')
+@login_required
+def ai_quiz_generate():
+    # استقبال عدد الأسئلة من الواجهة (وإذا لم يختر، يكون 5 افتراضياً)
+    num_q = request.args.get('num_q', 5, type=int) 
+    
+    # جلب كل بطاقات المستخدم
+    all_user_cards = Flashcard.query.filter_by(user_id=current_user.id).all()
+    
+    if len(all_user_cards) < 3:
+        flash("تحتاج إلى إضافة 3 بطاقات على الأقل لبدء تحدي الذكاء الاصطناعي! 📚")
+        return redirect('/')
+    
+    # اختيار عينة عشوائية من البطاقات لتنويع الأسئلة في كل مرة (نرسل للذكاء الاصطناعي بطاقات أكثر قليلاً ليختار منها)
+    sample_size = min(len(all_user_cards), max(num_q * 2, 10))
+    selected_cards = random.sample(all_user_cards, sample_size)
+    
+    cards_text = [{"q": c.front, "a": c.back} for c in selected_cards]
+    
+    prompt = f"أنت خبير تعليمي. بناءً على هذه البطاقات، أنشئ اختبار اختيار من متعدد (MCQ) تفاعلي يتكون من {num_q} أسئلة بالضبط. الناتج يجب أن يكون JSON فقط كمصفوفة كائنات، كل كائن يحتوي على: 'question' (السؤال)، 'options' (مصفوفة من 4 خيارات)، و 'correct_index' (رقم الخيار الصحيح من 0 إلى 3).\nالبطاقات:\n{json.dumps(cards_text, ensure_ascii=False)}"
+    
+    try:
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        ai_text = response.text.replace("```json", "").replace("```", "").strip()
+        quiz_data = json.loads(ai_text)
+        return render_template('ai_quiz.html', quiz=quiz_data)
+    except Exception as e:
+        flash("حدث خطأ أثناء توليد التحدي، جرب مرة أخرى.")
+        return redirect('/')
 
 @app.route('/quiz')
 @login_required

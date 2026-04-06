@@ -7,94 +7,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta name="theme-color" content="#8a2be2">
     <style>
-        /* تنسيقات خاصة بصفحة الاختبار فقط */
-        .quiz-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .quiz-header {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .progress-text {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        /* تكبير حجم البطاقة في وضع الاختبار */
-        .quiz-card {
-            width: 100%;
-            max-width: 600px;
-            height: 300px;
-            margin-bottom: 30px;
-            cursor: pointer;
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .nav-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: 'Cairo', sans-serif;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .nav-btn:hover {
-            background-color: #2980b9;
-        }
-        .nav-btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .end-btn {
-            background-color: transparent;
-            color: #e74c3c;
-            border: 2px solid #e74c3c;
-            padding: 8px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .end-btn:hover {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        /* تعطيل الانقلاب عند مرور الماوس، وجعله بالضغط فقط */
-        .quiz-card:hover .flip-card-inner {
-            transform: none !important;
-        }
-        .quiz-card.flipped .flip-card-inner {
-            transform: rotateY(180deg) !important;
-        }
+        .quiz-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        .quiz-header { text-align: center; margin-bottom: 10px; color: #2c3e50; }
+        .progress-text { font-size: 14px; color: #7f8c8d; margin-bottom: 20px; font-weight: bold; }
+        .quiz-card { width: 100%; max-width: 600px; height: 300px; margin-bottom: 30px; cursor: pointer; }
+        .nav-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
+        .nav-btn { background-color: #3498db; color: white; border: none; padding: 10px 30px; border-radius: 8px; font-size: 16px; font-family: 'Cairo', sans-serif; cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
+        .nav-btn:hover { background-color: #2980b9; }
+        .nav-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .end-btn { background-color: transparent; color: #e74c3c; border: 2px solid #e74c3c; padding: 8px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: all 0.3s; }
+        .end-btn:hover { background-color: #e74c3c; color: white; }
+        .quiz-card:hover .flip-card-inner { transform: none !important; }
+        .quiz-card.flipped .flip-card-inner { transform: rotateY(180deg) !important; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="quiz-container">
             <h1 class="quiz-header">وضع المراجعة 🧠</h1>
-            
             <div class="progress-text" id="progressText">بطاقة 1 من 0</div>
 
             <div class="flip-card quiz-card" id="quizCard" onclick="toggleFlip()">
                 <div class="flip-card-inner">
-                    <div class="flip-card-front" id="cardFront">
+                    <div class="flip-card-front" id="cardFront" style="justify-content: center !important;">
                         <span class="category-badge" id="cardCategory"></span>
                         <div id="frontText" style="width: 100%;"></div>
                     </div>
-                    <div class="flip-card-back" id="cardBack">
+                    <div class="flip-card-back" id="cardBack" style="justify-content: flex-start !important;">
                         <div id="backText" style="width: 100%;"></div>
                     </div>
                 </div>
@@ -110,7 +49,6 @@
     </div>
 
     <script>
-        // سحب بيانات البطاقات من السيرفر مباشرة إلى جافاسكريبت
         const cards = {{ cards | tojson }};
         let currentIndex = 0;
 
@@ -123,47 +61,23 @@
         const nextBtn = document.getElementById('nextBtn');
 
         function showCard(index) {
-            // إزالة تأثير الانقلاب إذا كانت البطاقة مقلوبة
             quizCard.classList.remove('flipped');
-
-            // تأخير بسيط جداً لتغيير النص أثناء دوران البطاقة لتبدو سلسة
             setTimeout(() => {
                 const card = cards[index];
                 frontText.innerText = card.front;
                 backText.innerText = card.back;
                 cardCategory.innerText = card.category;
-                
-                // تحديث العداد
                 progressText.innerText = `بطاقة ${index + 1} من ${cards.length}`;
-
-                // تفعيل/تعطيل الأزرار في البداية والنهاية
                 prevBtn.disabled = index === 0;
                 nextBtn.disabled = index === cards.length - 1;
             }, 150);
         }
 
-        function toggleFlip() {
-            quizCard.classList.toggle('flipped');
-        }
+        function toggleFlip() { quizCard.classList.toggle('flipped'); }
+        function nextCard() { if (currentIndex < cards.length - 1) { currentIndex++; showCard(currentIndex); } }
+        function prevCard() { if (currentIndex > 0) { currentIndex--; showCard(currentIndex); } }
 
-        function nextCard() {
-            if (currentIndex < cards.length - 1) {
-                currentIndex++;
-                showCard(currentIndex);
-            }
-        }
-
-        function prevCard() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                showCard(currentIndex);
-            }
-        }
-
-        // تشغيل أول بطاقة عند فتح الصفحة
-        if(cards.length > 0) {
-            showCard(0);
-        }
+        if(cards.length > 0) { showCard(0); }
     </script>
 </body>
 </html>
