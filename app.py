@@ -1,6 +1,7 @@
 import os
 import random
 from dotenv import load_dotenv
+from PIL import Image
 
 load_dotenv()
 from flask import Flask, render_template, request, redirect, flash, url_for, jsonify
@@ -21,6 +22,10 @@ if db_url and db_url.startswith("postgres://"):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///flashcards.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 👇 الحل السحري لمنع انقطاع قاعدة البيانات 👇
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+
 db = SQLAlchemy(app)
 
 # إعداد الذكاء الاصطناعي
@@ -125,6 +130,7 @@ def delete_card(id):
         db.session.commit()
     return redirect('/')
 
+# --- الميزة القديمة: تحويل PDF ---
 @app.route('/upload_pdf', methods=['POST'])
 @login_required
 def upload_pdf():
@@ -136,105 +142,107 @@ def upload_pdf():
     if pdf_file and pdf_file.filename.endswith('.pdf'):
         try:
             pdf_document = fitz.open(stream=pdf_file.read(), filetype="pdf")
-            text = ""
-            for page in pdf_document:
-                text += page.get_text()
+            text = "".join([page.get_text() for page in pdf_document])[:10000]
             pdf_document.close()
-            text = text[:10000]
 
             if output_type == 'essay':
-                if lang == 'en':
-                    prompt = f"""You are an expert tutor. Extract 5 comprehensive essay questions and their detailed model answers from the text. Output STRICT JSON as an array of objects with keys: "front" (the question) and "back" (the model answer).\nText:\n{text}"""
-                else:
-                    prompt = f"""أنت خبير تعليمي. استخرج 5 أسئلة مقالية (طويلة) وإجاباتها النموذجية الشاملة من هذا النص. الناتج يجب أن يكون JSON فقط مصفوفة كائنات بمفتاحين: "front" للسؤال و "back" للإجابة.\nالنص:\n{text}"""
+                prompt = f"""أنت خبير تعليمي. استخرج 5 أسئلة مقالية وإجاباتها النموذجية من النص. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" و "back".\nالنص:\n{text}"""
             else:
-                if lang == 'en':
-                    prompt = f"""You are an educational expert. Extract the most important facts into short Q&A flashcards. Output STRICT JSON as an array of objects with keys: "front" (Question) and "back" (Answer).\nText:\n{text}"""
-                else:
-                    prompt = f"""أنت خبير تعليمي. استخرج أهم المعلومات كبطاقات سؤال وجواب قصيرة. الناتج يجب أن يكون JSON فقط مصفوفة كائنات بمفتاحين: "front" للسؤال و "back" للإجابة.\nالنص:\n{text}"""
+                prompt = f"""أنت خبير تعليمي. استخرج أهم المعلومات كبطاقات سؤال وجواب قصيرة. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" و "back".\nالنص:\n{text}"""
 
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt
-            )
-            ai_text = response.text.replace("```json", "").replace("```", "").strip()
-            flashcards_data = json.loads(ai_text)
+            response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            flashcards_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
 
             for card in flashcards_data:
-                new_card = Flashcard(
-                    category=pdf_category, 
-                    front=str(card.get('front', 'سؤال'))[:499], 
-                    back=str(card.get('back', 'إجابة'))[:1999],
-                    user_id=current_user.id 
-                )
+                new_card = Flashcard(category=pdf_category, front=str(card.get('front'))[:499], back=str(card.get('back'))[:1999], user_id=current_user.id)
                 db.session.add(new_card)
             db.session.commit()
         except Exception as e:
-            flash("حدث خطأ أثناء معالجة الملف.")
+            pass
+    return redirect('/')
+
+# --- الميزة الجديدة 1: عين الذكاء الاصطناعي (تحويل الصور) 📸 ---
+@app.route('/upload_image', methods=['POST'])
+@login_required
+def upload_image():
+    img_category = request.form.get('img_category') or "صورة ذكية"
+    image_file = request.files.get('image_file')
+    
+    if image_file:
+        try:
+            img = Image.open(image_file)
+            prompt = "أنت خبير تعليمي. اقرأ المكتوب في هذه الصورة بدقة، واستخرج أهم المعلومات كبطاقات (سؤال وجواب) للمراجعة. الناتج يجب أن يكون JSON فقط كمصفوفة كائنات، كل كائن يحتوي على مفتاح 'front' للسؤال ومفتاح 'back' للإجابة."
+            
+            response = client.models.generate_content(model='gemini-2.5-flash', contents=[img, prompt])
+            flashcards_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
+
+            for card in flashcards_data:
+                new_card = Flashcard(category=img_category, front=str(card.get('front'))[:499], back=str(card.get('back'))[:1999], user_id=current_user.id)
+                db.session.add(new_card)
+            db.session.commit()
+        except Exception as e:
+            pass
+    return redirect('/')
+
+# --- الميزة الجديدة 2: رابط المشاركة الفيروسي 🔗 ---
+@app.route('/share/<int:share_user_id>')
+def share_deck(share_user_id):
+    if not current_user.is_authenticated:
+        flash("عليك تسجيل الدخول أولاً لنسخ بطاقات صديقك! 🚀")
+        return redirect(url_for('login'))
+        
+    if current_user.id == share_user_id:
+        flash("هذه هي بطاقاتك بالفعل يا بطل! 😂")
+        return redirect('/')
+        
+    shared_cards = Flashcard.query.filter_by(user_id=share_user_id).all()
+    if not shared_cards:
+        flash("لا توجد بطاقات لدى هذا المستخدم.")
+        return redirect('/')
+        
+    for card in shared_cards:
+        new_card = Flashcard(category=card.category + " (من صديق)", front=card.front, back=card.back, user_id=current_user.id)
+        db.session.add(new_card)
+    db.session.commit()
     return redirect('/')
 
 @app.route('/api/simplify', methods=['POST'])
 @login_required
 def simplify_answer():
     data = request.get_json()
-    text_to_simplify = data.get('text')
-    lang = data.get('lang', 'ar')
-
-    if not text_to_simplify:
-        return jsonify({'error': 'No text provided'}), 400
-
     try:
-        if lang == 'en':
-            prompt = f"Explain the following concept in very simple terms, like you are explaining it to a 10-year-old child. Keep it short, fun, and easy to understand:\n\n{text_to_simplify}"
-        else:
-            prompt = f"اشرح هذه المعلومة بأسلوب مبسط جداً وكأنك تشرحها لطفل في العاشرة من عمره. استخدم تشبيهات ممتعة واجعل الشرح قصيراً وسهل الحفظ:\n\n{text_to_simplify}"
-
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
+        prompt = f"اشرح هذه المعلومة بأسلوب مبسط جداً وكأنك تشرحها لطفل في العاشرة. اجعل الشرح قصيراً:\n\n{data.get('text')}"
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         return jsonify({'simplified_text': response.text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# --- الميزة الجديدة والمحسنة: تحدي الذكاء الاصطناعي مع اختيار العدد ---
 @app.route('/ai_quiz_generate')
 @login_required
 def ai_quiz_generate():
-    # استقبال عدد الأسئلة من الواجهة (وإذا لم يختر، يكون 5 افتراضياً)
     num_q = request.args.get('num_q', 5, type=int) 
-    
-    # جلب كل بطاقات المستخدم
     all_user_cards = Flashcard.query.filter_by(user_id=current_user.id).all()
     
     if len(all_user_cards) < 3:
-        flash("تحتاج إلى إضافة 3 بطاقات على الأقل لبدء تحدي الذكاء الاصطناعي! 📚")
         return redirect('/')
     
-    # اختيار عينة عشوائية من البطاقات لتنويع الأسئلة في كل مرة (نرسل للذكاء الاصطناعي بطاقات أكثر قليلاً ليختار منها)
     sample_size = min(len(all_user_cards), max(num_q * 2, 10))
     selected_cards = random.sample(all_user_cards, sample_size)
-    
     cards_text = [{"q": c.front, "a": c.back} for c in selected_cards]
     
-    prompt = f"أنت خبير تعليمي. بناءً على هذه البطاقات، أنشئ اختبار اختيار من متعدد (MCQ) تفاعلي يتكون من {num_q} أسئلة بالضبط. الناتج يجب أن يكون JSON فقط كمصفوفة كائنات، كل كائن يحتوي على: 'question' (السؤال)، 'options' (مصفوفة من 4 خيارات)، و 'correct_index' (رقم الخيار الصحيح من 0 إلى 3).\nالبطاقات:\n{json.dumps(cards_text, ensure_ascii=False)}"
+    prompt = f"أنت خبير تعليمي. أنشئ اختبار MCQ من {num_q} أسئلة بناءً على البطاقات. الناتج JSON مصفوفة كائنات (question, options, correct_index).\nالبطاقات:\n{json.dumps(cards_text, ensure_ascii=False)}"
     
     try:
         response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        ai_text = response.text.replace("```json", "").replace("```", "").strip()
-        quiz_data = json.loads(ai_text)
+        quiz_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
         return render_template('ai_quiz.html', quiz=quiz_data)
     except Exception as e:
-        flash("حدث خطأ أثناء توليد التحدي، جرب مرة أخرى.")
         return redirect('/')
 
 @app.route('/quiz')
 @login_required
 def quiz():
     user_cards = Flashcard.query.filter_by(user_id=current_user.id).all()
-    if not user_cards:
-        flash('ليس لديك أي بطاقات لمراجعتها. قم بإضافة بعض البطاقات أولاً! 📚')
-        return redirect(url_for('index'))
     cards_data = [{'front': card.front, 'back': card.back, 'category': card.category} for card in user_cards]
     return render_template('quiz.html', cards=cards_data)
 
