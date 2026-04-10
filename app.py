@@ -75,7 +75,7 @@ def call_ai(prompt, image_bytes=None):
         content = prompt
 
     data = {
-        "model": "google/gemini-1.5-flash", # 👈 تم مسح كلمة :free من هنا ليقبلها السيرفر
+        "model": "openrouter/free", # 👈 تم مسح كلمة :free من هنا ليقبلها السيرفر
         "messages": [{"role": "user", "content": content}]
     }
     
