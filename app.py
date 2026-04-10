@@ -254,6 +254,9 @@ def simplify_answer():
         ai_text = call_ai(prompt)
         return jsonify({'simplified_text': ai_text})
     except Exception as e:
+        # 👇 أضفنا هذه الأوامر لكي يطبع السيرفر الخطأ باللون الأحمر في سجلات Render
+        print("🚨🚨🚨 خـطـأ الـذكـاء الاصـطـنـاعـي 🚨🚨🚨", flush=True)
+        print(str(e), flush=True)
         return jsonify({'error': str(e)}), 500
 
 # --- تحدي الذكاء الاصطناعي ---
