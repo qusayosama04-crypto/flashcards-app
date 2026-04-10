@@ -53,7 +53,7 @@ with app.app_context():
     db.create_all()
 
 # ==========================================
-# 🤖 محرك الذكاء الاصطناعي الجديد (OpenRouter)
+# 🤖 محرك الذكاء الاصطناعي الجديد (تم إصلاح الموديل)
 # ==========================================
 def call_ai(prompt, image_bytes=None):
     api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -66,7 +66,6 @@ def call_ai(prompt, image_bytes=None):
     }
     
     if image_bytes:
-        # تحويل الصورة إلى نص برمجي ليفهمها الذكاء الاصطناعي
         base64_image = base64.b64encode(image_bytes).decode('utf-8')
         content = [
             {"type": "text", "text": prompt},
@@ -76,7 +75,7 @@ def call_ai(prompt, image_bytes=None):
         content = prompt
 
     data = {
-        "model": "google/gemini-1.5-flash:free", # نستخدم نسخة فلاش السريعة والمجانية
+        "model": "google/gemini-1.5-flash", # 👈 تم مسح كلمة :free من هنا ليقبلها السيرفر
         "messages": [{"role": "user", "content": content}]
     }
     
@@ -254,7 +253,6 @@ def simplify_answer():
         ai_text = call_ai(prompt)
         return jsonify({'simplified_text': ai_text})
     except Exception as e:
-        # 👇 أضفنا هذه الأوامر لكي يطبع السيرفر الخطأ باللون الأحمر في سجلات Render
         print("🚨🚨🚨 خـطـأ الـذكـاء الاصـطـنـاعـي 🚨🚨🚨", flush=True)
         print(str(e), flush=True)
         return jsonify({'error': str(e)}), 500
