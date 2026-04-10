@@ -1,16 +1,16 @@
 import os
 import random
+import base64
+import requests
+import fitz
+import json
 from dotenv import load_dotenv
-from PIL import Image
-
-load_dotenv()
 from flask import Flask, render_template, request, redirect, flash, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import fitz
-import json
-from google import genai
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -22,14 +22,9 @@ if db_url and db_url.startswith("postgres://"):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///flashcards.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# 👇 الحل السحري لمنع انقطاع قاعدة البيانات 👇
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 
 db = SQLAlchemy(app)
-
-# إعداد الذكاء الاصطناعي
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # إعداد نظام تسجيل الدخول
 login_manager = LoginManager()
@@ -56,6 +51,43 @@ class Flashcard(db.Model):
 
 with app.app_context():
     db.create_all()
+
+# ==========================================
+# 🤖 محرك الذكاء الاصطناعي الجديد (OpenRouter)
+# ==========================================
+def call_ai(prompt, image_bytes=None):
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise Exception("مفتاح OPENROUTER_API_KEY مفقود من الإعدادات!")
+        
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    if image_bytes:
+        # تحويل الصورة إلى نص برمجي ليفهمها الذكاء الاصطناعي
+        base64_image = base64.b64encode(image_bytes).decode('utf-8')
+        content = [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+        ]
+    else:
+        content = prompt
+
+    data = {
+        "model": "google/gemini-1.5-flash:free", # نستخدم نسخة فلاش السريعة والمجانية
+        "messages": [{"role": "user", "content": content}]
+    }
+    
+    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+    
+    if response.status_code != 200:
+        raise Exception(f"خطأ في اتصال الذكاء الاصطناعي: {response.text}")
+        
+    response_json = response.json()
+    return response_json['choices'][0]['message']['content']
+
 
 # --- مسارات الحسابات ---
 @app.route('/signup', methods=['GET', 'POST'])
@@ -99,6 +131,7 @@ def logout():
 def index():
     if not current_user.is_authenticated:
         return render_template('index.html', cards=[])
+    
     search_query = request.args.get('search')
     if search_query:
         all_cards = Flashcard.query.filter(
@@ -107,6 +140,7 @@ def index():
         ).all()
     else:
         all_cards = Flashcard.query.filter_by(user_id=current_user.id).all()
+        
     return render_template('index.html', cards=all_cards)
 
 @app.route('/add', methods=['POST'])
@@ -130,7 +164,7 @@ def delete_card(id):
         db.session.commit()
     return redirect('/')
 
-# --- الميزة القديمة: تحويل PDF ---
+# --- تحويل PDF السحري ---
 @app.route('/upload_pdf', methods=['POST'])
 @login_required
 def upload_pdf():
@@ -146,22 +180,28 @@ def upload_pdf():
             pdf_document.close()
 
             if output_type == 'essay':
-                prompt = f"""أنت خبير تعليمي. استخرج 5 أسئلة مقالية وإجاباتها النموذجية من النص. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" و "back".\nالنص:\n{text}"""
+                if lang == 'en':
+                    prompt = f"""You are an expert tutor. Extract 5 comprehensive essay questions and their detailed model answers from the text. Output STRICT JSON as an array of objects with keys: "front" (the question) and "back" (the model answer).\nText:\n{text}"""
+                else:
+                    prompt = f"""أنت خبير تعليمي. استخرج 5 أسئلة مقالية وإجاباتها النموذجية من النص. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" للسؤال و "back" للإجابة.\nالنص:\n{text}"""
             else:
-                prompt = f"""أنت خبير تعليمي. استخرج أهم المعلومات كبطاقات سؤال وجواب قصيرة. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" و "back".\nالنص:\n{text}"""
+                if lang == 'en':
+                    prompt = f"""You are an educational expert. Extract the most important facts into short Q&A flashcards. Output STRICT JSON as an array of objects with keys: "front" (Question) and "back" (Answer).\nText:\n{text}"""
+                else:
+                    prompt = f"""أنت خبير تعليمي. استخرج أهم المعلومات كبطاقات سؤال وجواب قصيرة. الناتج JSON فقط مصفوفة كائنات بمفتاحين: "front" للسؤال و "back" للإجابة.\nالنص:\n{text}"""
 
-            response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-            flashcards_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
+            ai_text = call_ai(prompt)
+            flashcards_data = json.loads(ai_text.replace("```json", "").replace("```", "").strip())
 
             for card in flashcards_data:
                 new_card = Flashcard(category=pdf_category, front=str(card.get('front'))[:499], back=str(card.get('back'))[:1999], user_id=current_user.id)
                 db.session.add(new_card)
             db.session.commit()
         except Exception as e:
-            pass
+            flash(f"حدث خطأ: {str(e)}")
     return redirect('/')
 
-# --- الميزة الجديدة 1: عين الذكاء الاصطناعي (تحويل الصور) 📸 ---
+# --- عين الذكاء الاصطناعي (الصور) ---
 @app.route('/upload_image', methods=['POST'])
 @login_required
 def upload_image():
@@ -170,21 +210,21 @@ def upload_image():
     
     if image_file:
         try:
-            img = Image.open(image_file)
+            image_bytes = image_file.read()
             prompt = "أنت خبير تعليمي. اقرأ المكتوب في هذه الصورة بدقة، واستخرج أهم المعلومات كبطاقات (سؤال وجواب) للمراجعة. الناتج يجب أن يكون JSON فقط كمصفوفة كائنات، كل كائن يحتوي على مفتاح 'front' للسؤال ومفتاح 'back' للإجابة."
             
-            response = client.models.generate_content(model='gemini-2.5-flash', contents=[img, prompt])
-            flashcards_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
+            ai_text = call_ai(prompt, image_bytes)
+            flashcards_data = json.loads(ai_text.replace("```json", "").replace("```", "").strip())
 
             for card in flashcards_data:
                 new_card = Flashcard(category=img_category, front=str(card.get('front'))[:499], back=str(card.get('back'))[:1999], user_id=current_user.id)
                 db.session.add(new_card)
             db.session.commit()
         except Exception as e:
-            pass
+            print("Image Error:", str(e))
     return redirect('/')
 
-# --- الميزة الجديدة 2: رابط المشاركة الفيروسي 🔗 ---
+# --- رابط المشاركة الفيروسي ---
 @app.route('/share/<int:share_user_id>')
 def share_deck(share_user_id):
     if not current_user.is_authenticated:
@@ -192,12 +232,10 @@ def share_deck(share_user_id):
         return redirect(url_for('login'))
         
     if current_user.id == share_user_id:
-        flash("هذه هي بطاقاتك بالفعل يا بطل! 😂")
         return redirect('/')
         
     shared_cards = Flashcard.query.filter_by(user_id=share_user_id).all()
     if not shared_cards:
-        flash("لا توجد بطاقات لدى هذا المستخدم.")
         return redirect('/')
         
     for card in shared_cards:
@@ -206,17 +244,19 @@ def share_deck(share_user_id):
     db.session.commit()
     return redirect('/')
 
+# --- زر التبسيط ---
 @app.route('/api/simplify', methods=['POST'])
 @login_required
 def simplify_answer():
     data = request.get_json()
     try:
         prompt = f"اشرح هذه المعلومة بأسلوب مبسط جداً وكأنك تشرحها لطفل في العاشرة. اجعل الشرح قصيراً:\n\n{data.get('text')}"
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        return jsonify({'simplified_text': response.text})
+        ai_text = call_ai(prompt)
+        return jsonify({'simplified_text': ai_text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- تحدي الذكاء الاصطناعي ---
 @app.route('/ai_quiz_generate')
 @login_required
 def ai_quiz_generate():
@@ -233,12 +273,13 @@ def ai_quiz_generate():
     prompt = f"أنت خبير تعليمي. أنشئ اختبار MCQ من {num_q} أسئلة بناءً على البطاقات. الناتج JSON مصفوفة كائنات (question, options, correct_index).\nالبطاقات:\n{json.dumps(cards_text, ensure_ascii=False)}"
     
     try:
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        quiz_data = json.loads(response.text.replace("```json", "").replace("```", "").strip())
+        ai_text = call_ai(prompt)
+        quiz_data = json.loads(ai_text.replace("```json", "").replace("```", "").strip())
         return render_template('ai_quiz.html', quiz=quiz_data)
     except Exception as e:
         return redirect('/')
 
+# --- المراجعة الكلاسيكية ---
 @app.route('/quiz')
 @login_required
 def quiz():
