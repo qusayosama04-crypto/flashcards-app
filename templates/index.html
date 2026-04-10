@@ -13,106 +13,122 @@
     <title>منصة البطاقات التعليمية | Zaki Cards</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#8a2be2">
+    <meta name="theme-color" content="#6c5ce7">
     <style>
-        .quiz-select { padding: 15px 10px; border-radius: 8px; border: 2px solid #ff9800; font-size: 16px; font-weight: bold; color: #ff9800; background-color: #fffaf0; cursor: pointer; outline: none; font-family: inherit; height: 100%; }
-        /* زر المشاركة العائم */
-        .share-btn-floating { position: fixed; bottom: 20px; left: 20px; background-color: #34495e; color: white; border: none; border-radius: 50px; padding: 15px 25px; font-size: 16px; font-weight: bold; font-family: inherit; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; transition: transform 0.3s; }
-        .share-btn-floating:hover { transform: scale(1.05); background-color: #2c3e50; }
+        /* تحسينات التصميم الاحترافي */
+        body { background-color: #f8f9fa; color: #2d3436; font-family: system-ui, -apple-system, sans-serif; }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+        
+        /* شريط التحكم العلوي المطور */
+        .top-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .user-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        
+        /* زر المشاركة الجديد الأنيق */
+        .share-btn-inline { background-color: #e8f4f8; color: #0984e3; border: 1px solid #74b9ff; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .share-btn-inline:hover { background-color: #0984e3; color: white; }
+
+        /* الصناديق (Cards) للنماذج */
+        .action-box { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); margin-bottom: 25px; border: 1px solid #f1f2f6; transition: transform 0.2s; }
+        .action-box:hover { transform: translateY(-3px); }
+        .action-box h3 { margin-top: 0; color: #2d3436; font-size: 18px; }
+        
+        .quiz-select { padding: 15px 10px; border-radius: 8px; border: 1px solid #ffeaa7; font-size: 16px; font-weight: bold; color: #fdcb6e; background-color: #fff9ed; cursor: pointer; outline: none; font-family: inherit; height: 100%; }
         
         /* شخصية زكي */
         .mascot-container { position: fixed; bottom: 30px; right: -350px; display: flex; align-items: center; gap: 15px; z-index: 9999; animation: slideInOut 7s ease-in-out forwards; animation-delay: 1.5s; }
         .mascot-emoji { font-size: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); animation: bounce 1.5s infinite; }
-        .speech-bubble { background: #ffffff; border: 3px solid #8a2be2; border-radius: 20px; padding: 12px 20px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; font-size: 16px; max-width: 200px; text-align: center; }
-        .speech-bubble::after { content: ''; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); border-width: 12px 0 12px 12px; border-style: solid; border-color: transparent transparent transparent #8a2be2; display: block; width: 0; }
+        .speech-bubble { background: #ffffff; border: 3px solid #6c5ce7; border-radius: 20px; padding: 12px 20px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: relative; font-size: 16px; max-width: 200px; text-align: center; }
+        .speech-bubble::after { content: ''; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); border-width: 12px 0 12px 12px; border-style: solid; border-color: transparent transparent transparent #6c5ce7; display: block; width: 0; }
         @keyframes slideInOut { 0% { right: -350px; } 15% { right: 20px; } 85% { right: 20px; } 100% { right: -350px; } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @media screen and (max-width: 600px) { .mascot-emoji { font-size: 45px; } .speech-bubble { font-size: 14px; max-width: 150px; padding: 8px 12px; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
-            <div id="auth-section">
+        <div class="top-header">
+            <div class="user-info" id="auth-section">
                 {% if current_user.is_authenticated %}
-                    <span style="font-size: 18px; font-weight: bold; color: #64748b;"><span data-tr="welcome_user">مرحباً بك،</span> <span style="color: #2c3e50;">{{ current_user.username }}</span></span>
-                    <a href="/logout" data-tr="logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #e74c3c; border-radius: 8px; margin-right: 15px;">تسجيل خروج</a>
+                    <span style="font-size: 16px; font-weight: bold; color: #636e72;">
+                        <span data-tr="welcome_user">مرحباً،</span> <span style="color: #2d3436;">{{ current_user.username }}</span>
+                    </span>
+                    {% if cards %}
+                        <button onclick="copyShareLink()" class="share-btn-inline" data-tr="share_deck">شارك مذكرتك 🔗</button>
+                    {% endif %}
+                    <a href="/logout" data-tr="logout" style="color: #d63031; text-decoration: none; font-weight: bold; font-size: 14px; margin-right: 10px;">تسجيل خروج</a>
                 {% else %}
-                    <span data-tr="welcome_guest" style="font-size: 18px; font-weight: bold; color: #64748b;">مرحباً بك يا ضيف! 👋</span>
-                    <div style="display: inline-block; margin-right: 15px;">
-                        <a href="/login" data-tr="login" style="color: #8a2be2; text-decoration: none; font-weight: bold; margin-right: 15px;">تسجيل الدخول</a>
-                        <a href="/signup" data-tr="signup" style="background-color: #8a2be2; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold;">إنشاء حساب</a>
+                    <span data-tr="welcome_guest" style="font-size: 16px; font-weight: bold; color: #636e72;">مرحباً بك يا ضيف! 👋</span>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="/login" data-tr="login" style="color: #6c5ce7; text-decoration: none; font-weight: bold; background: #f0edff; padding: 6px 12px; border-radius: 8px;">دخول</a>
+                        <a href="/signup" data-tr="signup" style="background-color: #6c5ce7; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold;">حساب جديد</a>
                     </div>
                 {% endif %}
             </div>
-            <button id="lang-toggle" onclick="toggleLanguage()" style="background-color: #f1f5f9; color: #2c3e50; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">English 🇺🇸</button>
+            <button id="lang-toggle" onclick="toggleLanguage()" style="background-color: #dfe6e9; color: #2d3436; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">English 🇺🇸</button>
         </div>
 
-        <h1 data-tr="main_title">منصتي التعليمية 🎓</h1>
+        <h1 data-tr="main_title" style="text-align: center; color: #2d3436; font-size: 28px; margin-bottom: 30px;">Zaki Cards 🎓</h1>
         
-        <div style="display: flex; gap: 15px; justify-content: center; align-items: stretch; margin-bottom: 40px; margin-top: 20px; flex-wrap: wrap;">
-            <a href="/quiz" data-tr="start_quiz" class="note-btn" style="background-color: #8e44ad; font-size: 18px; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: flex; align-items: center;">ابدأ المراجعة الكلاسيكية 🚀</a>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: stretch; margin-bottom: 40px; flex-wrap: wrap;">
+            <a href="/quiz" data-tr="start_quiz" class="note-btn" style="background-color: #6c5ce7; font-size: 16px; padding: 15px 25px; text-decoration: none; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);">ابدأ المراجعة الكلاسيكية 🚀</a>
             <form action="/ai_quiz_generate" method="GET" style="display: flex; gap: 5px; margin: 0; align-items: stretch;">
-                <select name="num_q" class="quiz-select">
+                <select name="num_q" class="quiz-select" style="border-radius: 12px;">
                     <option value="5">5 أسئلة</option>
                     <option value="10">10 أسئلة</option>
                     <option value="15">15 سؤال</option>
                 </select>
-                <button type="submit" data-tr="ai_quiz" class="note-btn" style="background-color: #ff9800; font-size: 18px; padding: 15px 30px; border-radius: 8px; border: none; cursor: pointer;">تحدي الذكاء الاصطناعي 🤖</button>
+                <button type="submit" data-tr="ai_quiz" class="note-btn" style="background-color: #fdcb6e; color: #2d3436; font-size: 16px; padding: 15px 25px; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);">تحدي الذكاء الاصطناعي 🤖</button>
             </form>
         </div>
 
-        <form action="/add" method="POST" style="background-color: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-            <h3 data-tr="add_manual" style="margin: 0 0 15px 0; color: #2c3e50;">إضافة يدوية ✍️</h3>
+        <form action="/add" method="POST" class="action-box">
+            <h3 data-tr="add_manual">إضافة بطاقة يدوية ✍️</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input class="note-input" type="text" name="category" data-tr-ph="subject_ph" placeholder="المادة..." autocomplete="off" style="flex: 1; padding: 12px;">
-                <input class="note-input" type="text" name="front" data-tr-ph="question_ph" placeholder="السؤال أو المصطلح..." required autocomplete="off" style="flex: 2; padding: 12px;">
+                <input class="note-input" type="text" name="category" data-tr-ph="subject_ph" placeholder="المادة..." autocomplete="off" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd;">
+                <input class="note-input" type="text" name="front" data-tr-ph="question_ph" placeholder="السؤال أو المصطلح..." required autocomplete="off" style="flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd;">
             </div>
-            <input class="note-input" type="text" name="back" data-tr-ph="answer_ph" placeholder="الإجابة أو الشرح..." required autocomplete="off" style="padding: 12px; margin-bottom: 15px;">
-            <button class="note-btn" data-tr="add_btn" type="submit">إضافة بطاقة</button>
+            <input class="note-input" type="text" name="back" data-tr-ph="answer_ph" placeholder="الإجابة أو الشرح..." required autocomplete="off" style="padding: 12px; margin-bottom: 15px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd;">
+            <button class="note-btn" data-tr="add_btn" type="submit" style="background: #00b894; border-radius: 8px;">إضافة للبطاقات</button>
         </form>
 
         <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
-            <form action="/upload_pdf" method="POST" enctype="multipart/form-data" style="flex: 1; min-width: 300px; background-color: #f0f9ff; padding: 25px; border-radius: 12px; border: 2px dashed #3498db;">
-                <h3 data-tr="magic_pdf" style="margin: 0 0 15px 0; color: #2980b9;">تحويل PDF سحري ✨</h3>
-                <input class="note-input" type="text" name="pdf_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
-                <input type="file" name="pdf_file" accept=".pdf" required style="margin-bottom: 15px; width: 100%;">
-                
+            <form action="/upload_pdf" method="POST" enctype="multipart/form-data" class="action-box" style="flex: 1; min-width: 300px; border-top: 4px solid #0984e3;">
+                <h3 data-tr="magic_pdf" style="color: #0984e3;">تحويل PDF سحري ✨</h3>
+                <input class="note-input" type="text" name="pdf_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #dfe6e9;">
+                <input type="file" name="pdf_file" accept=".pdf" required style="margin-bottom: 15px; width: 100%; font-size: 14px;">
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <div style="flex: 1;">
-                        <label data-tr="card_lang_label" style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: bold; font-size: 14px;">لغة الملاحظات:</label>
-                        <select name="language" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
-                            <option value="ar" data-tr="lang_ar">عربي (Arabic)</option>
-                            <option value="en" data-tr="lang_en">إنجليزي (English)</option>
+                        <label data-tr="card_lang_label" style="font-size: 13px; font-weight: bold; color: #636e72;">اللغة:</label>
+                        <select name="language" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #dfe6e9;">
+                            <option value="ar" data-tr="lang_ar">عربي</option>
+                            <option value="en" data-tr="lang_en">إنجليزي</option>
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <label data-tr="note_type_label" style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: bold; font-size: 14px;">نوع الملاحظات:</label>
-                        <select name="output_type" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit;">
-                            <option value="flashcards" data-tr="type_flashcards">بطاقات حفظ قصيرة</option>
-                            <option value="essay" data-tr="type_essay">أسئلة مقالية طويلة</option>
+                        <label data-tr="note_type_label" style="font-size: 13px; font-weight: bold; color: #636e72;">النوع:</label>
+                        <select name="output_type" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #dfe6e9;">
+                            <option value="flashcards" data-tr="type_flashcards">بطاقات قصيرة</option>
+                            <option value="essay" data-tr="type_essay">أسئلة مقالية</option>
                         </select>
                     </div>
                 </div>
-
-                <button class="note-btn" data-tr="convert_btn" type="submit" style="background-color: #27ae60; width: 100%;">تحويل إلى بطاقات</button>
+                <button class="note-btn" data-tr="convert_btn" type="submit" style="background-color: #0984e3; width: 100%; border-radius: 8px;">استخراج البطاقات</button>
             </form>
 
-            <form action="/upload_image" method="POST" enctype="multipart/form-data" style="flex: 1; min-width: 300px; background-color: #fff5f5; padding: 25px; border-radius: 12px; border: 2px dashed #e74c3c;">
-                <h3 style="margin: 0 0 15px 0; color: #c0392b;">عين الذكاء الاصطناعي 📸</h3>
-                <p style="font-size: 13px; color: #7f8c8d; margin-top: 0;">صور السبورة أو الكتاب وحولها لبطاقات!</p>
-                <input class="note-input" type="text" name="img_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
-                <input type="file" name="image_file" accept="image/*" required style="margin-bottom: 15px; width: 100%;">
-                <button class="note-btn" type="submit" style="background-color: #e74c3c; width: 100%;">استخراج البطاقات 🪄</button>
+            <form action="/upload_image" method="POST" enctype="multipart/form-data" class="action-box" style="flex: 1; min-width: 300px; border-top: 4px solid #d63031;">
+                <h3 style="color: #d63031;">عين الذكاء الاصطناعي 📸</h3>
+                <p style="font-size: 13px; color: #636e72; margin-top: -5px;">صور السبورة وحولها لبطاقات!</p>
+                <input class="note-input" type="text" name="img_category" data-tr-ph="pdf_subject_ph" placeholder="اسم المادة (اختياري)..." autocomplete="off" style="padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #dfe6e9;">
+                <input type="file" name="image_file" accept="image/*" required style="margin-bottom: 15px; width: 100%; font-size: 14px;">
+                <button class="note-btn" type="submit" style="background-color: #d63031; width: 100%; border-radius: 8px; margin-top: 52px;">استخراج من الصورة 🪄</button>
             </form>
         </div>
 
-        <div class="search-container">
-            <form action="/" method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" name="search" data-tr-ph="search_ph" class="note-input search-input" placeholder="ابحث عن مادة أو سؤال..." value="{{ request.args.get('search', '') }}" style="flex: 1;">
-                <button type="submit" data-tr="search_btn" class="note-btn search-btn">بحث 🔍</button>
+        <div class="search-container" style="margin-bottom: 25px;">
+            <form action="/" method="GET" style="display: flex; gap: 10px;">
+                <input type="text" name="search" data-tr-ph="search_ph" class="note-input search-input" placeholder="ابحث عن مادة أو سؤال..." value="{{ request.args.get('search', '') }}" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #dfe6e9;">
+                <button type="submit" data-tr="search_btn" class="note-btn search-btn" style="border-radius: 8px; padding: 0 20px;">بحث 🔍</button>
                 {% if request.args.get('search') %}
-                    <a href="/" data-tr="clear_search" class="clear-search" style="padding: 10px; background: #e74c3c; color: white; text-decoration: none; border-radius: 8px;">إلغاء البحث</a>
+                    <a href="/" data-tr="clear_search" class="clear-search" style="padding: 12px 15px; background: #b2bec3; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">إلغاء</a>
                 {% endif %}
             </form>
         </div>
@@ -122,21 +138,21 @@
                 <div class="card-wrapper">
                     <div class="flip-card">
                         <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <span class="category-badge">{{ card.category }}</span>
+                            <div class="flip-card-front" style="border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                <span class="category-badge" style="background: #e8f4f8; color: #0984e3; border: none;">{{ card.category }}</span>
                                 {{ card.front }}
                             </div>
-                            <div class="flip-card-back">
+                            <div class="flip-card-back" style="border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                                 <div class="original-text" style="width: 100%;">{{ card.back }}</div>
-                                <div id="simp-{{ card.id }}" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #f39c12; font-size: 0.95em; text-align: right; width: 100%;"></div>
-                                <button onclick="simplifyCard(this, {{ card.id }})" class="note-btn" data-tr="simplify_btn" style="background-color: #f39c12; font-size: 14px; padding: 8px 12px; margin-top: 15px; width: 100%;">بسطها لي 💡</button>
+                                <div id="simp-{{ card.id }}" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.95em; text-align: right; width: 100%;"></div>
+                                <button onclick="simplifyCard(this, {{ card.id }})" class="note-btn" data-tr="simplify_btn" style="background-color: #fdcb6e; color: #2d3436; font-size: 14px; padding: 8px 12px; margin-top: 15px; width: 100%; border-radius: 8px;">بسطها لي 💡</button>
                             </div>
                         </div>
                     </div>
-                    <a href="/delete/{{ card.id }}" data-tr="delete_btn" class="delete-btn">حذف 🗑️</a>
+                    <a href="/delete/{{ card.id }}" data-tr="delete_btn" class="delete-btn" style="border-radius: 8px; margin-top: 10px;">حذف 🗑️</a>
                 </div>
             {% else %}
-                <p data-tr="no_cards" style="text-align: center; color: #888; grid-column: 1 / -1;">لا توجد بطاقات. ابدأ بإضافة بطاقتك الأولى!</p>
+                <p data-tr="no_cards" style="text-align: center; color: #b2bec3; grid-column: 1 / -1; margin-top: 40px; font-size: 18px;">لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!</p>
             {% endfor %}
         </div>
     </div>
@@ -146,51 +162,45 @@
         <div class="mascot-emoji">🤖</div>
     </div>
 
-    {% if current_user.is_authenticated and cards %}
-    <button onclick="copyShareLink()" class="share-btn-floating">
-        شارك مذكرتك 🔗
-    </button>
-    {% endif %}
-
     <script>
         const translations = {
             ar: {
-                welcome_user: "مرحباً بك،", logout: "تسجيل خروج", welcome_guest: "مرحباً بك يا ضيف! 👋",
-                login: "تسجيل الدخول", signup: "إنشاء حساب", main_title: "منصتي التعليمية 🎓",
-                start_quiz: "المراجعة الكلاسيكية 🚀", ai_quiz: "تحدي الذكاء الاصطناعي 🤖", add_manual: "إضافة يدوية ✍️",
+                welcome_user: "مرحباً،", logout: "تسجيل خروج", welcome_guest: "مرحباً بك يا ضيف! 👋",
+                login: "دخول", signup: "حساب جديد", main_title: "Zaki Cards 🎓",
+                start_quiz: "المراجعة الكلاسيكية 🚀", ai_quiz: "تحدي الذكاء الاصطناعي 🤖", add_manual: "إضافة بطاقة يدوية ✍️",
                 subject_ph: "المادة...", question_ph: "السؤال أو المصطلح...", answer_ph: "الإجابة أو الشرح...",
-                add_btn: "إضافة بطاقة", magic_pdf: "تحويل PDF سحري ✨", pdf_subject_ph: "اسم المادة (اختياري)...",
-                convert_btn: "تحويل إلى بطاقات", search_ph: "ابحث عن مادة أو سؤال...", search_btn: "بحث 🔍",
-                clear_search: "إلغاء البحث", delete_btn: "حذف 🗑️", no_cards: "لا توجد بطاقات. ابدأ بإضافة بطاقتك الأولى!",
-                lang_toggle: "English 🇺🇸", card_lang_label: "لغة الملاحظات:", note_type_label: "نوع الملاحظات:",
-                lang_ar: "عربي (Arabic)", lang_en: "إنجليزي (English)", type_flashcards: "بطاقات حفظ قصيرة",
-                type_essay: "أسئلة مقالية طويلة", simplify_btn: "بسطها لي 💡"
+                add_btn: "إضافة للبطاقات", magic_pdf: "تحويل PDF سحري ✨", pdf_subject_ph: "اسم المادة (اختياري)...",
+                convert_btn: "استخراج البطاقات", search_ph: "ابحث عن مادة أو سؤال...", search_btn: "بحث 🔍",
+                clear_search: "إلغاء", delete_btn: "حذف 🗑️", no_cards: "لا توجد بطاقات حتى الآن. ابدأ بإضافة بطاقتك الأولى!",
+                lang_toggle: "English 🇺🇸", card_lang_label: "اللغة:", note_type_label: "النوع:",
+                lang_ar: "عربي", lang_en: "إنجليزي", type_flashcards: "بطاقات قصيرة",
+                type_essay: "أسئلة مقالية", simplify_btn: "بسطها لي 💡", share_deck: "شارك مذكرتك 🔗"
             },
             en: {
                 welcome_user: "Welcome, ", logout: "Logout", welcome_guest: "Welcome, Guest! 👋",
-                login: "Login", signup: "Sign Up", main_title: "My Learning Platform 🎓",
+                login: "Login", signup: "Sign Up", main_title: "Zaki Cards 🎓",
                 start_quiz: "Classic Review 🚀", ai_quiz: "AI Quiz 🤖", add_manual: "Manual Add ✍️",
-                subject_ph: "Subject/Category...", question_ph: "Question or Term...", answer_ph: "Answer or Explanation...",
+                subject_ph: "Subject...", question_ph: "Question or Term...", answer_ph: "Answer or Explanation...",
                 add_btn: "Add Card", magic_pdf: "Magic PDF ✨", pdf_subject_ph: "Subject Name (Optional)...",
-                convert_btn: "Convert to Cards", search_ph: "Search for a subject or question...", search_btn: "Search 🔍",
-                clear_search: "Clear Search", delete_btn: "Delete 🗑️", no_cards: "No cards yet. Start by adding your first card!",
-                lang_toggle: "عربي 🇸🇦", card_lang_label: "Language:", note_type_label: "Notes Type:",
-                lang_ar: "Arabic (عربي)", lang_en: "English (إنجليزي)", type_flashcards: "Short Flashcards",
-                type_essay: "Long Essay Questions", simplify_btn: "Simplify it 💡"
+                convert_btn: "Extract Cards", search_ph: "Search for a subject or question...", search_btn: "Search 🔍",
+                clear_search: "Clear", delete_btn: "Delete 🗑️", no_cards: "No cards yet. Start by adding your first card!",
+                lang_toggle: "عربي 🇸🇦", card_lang_label: "Lang:", note_type_label: "Type:",
+                lang_ar: "Arabic", lang_en: "English", type_flashcards: "Flashcards",
+                type_essay: "Essay Qs", simplify_btn: "Simplify it 💡", share_deck: "Share Deck 🔗"
             }
         };
 
         const zakiQuotesAr = [
             "أنا زكي! 🤓 أراقبك.. ذاكر بتركيز يا بطل!",
             "الفاينال يقترب.. لا تستسلم يا صديقي! ⚔️",
-            "هل جربت ميزة 'عين الذكاء الاصطناعي'؟ صور الملزمة وجرب! 📸",
-            "انسخ رابط المشاركة أسفل الشاشة وانقذ الدفعة! 🔗"
+            "هل جربت ميزة 'عين الذكاء الاصطناعي'؟ 📸",
+            "انسخ رابط المشاركة من الأعلى وانقذ الدفعة! 🔗"
         ];
         const zakiQuotesEn = [
             "I'm Zaki! 🤓 Watching you.. Study hard!",
             "Finals are near.. Don't give up! ⚔️",
-            "Tried the 'AI Eye'? Take a photo of your notes! 📸",
-            "Copy the share link below and save your classmates! 🔗"
+            "Tried the 'AI Eye'? Take a photo! 📸",
+            "Copy the share link from the top! 🔗"
         ];
 
         function setLanguage(lang) {
